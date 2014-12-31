@@ -1,0 +1,64 @@
+Files present in the folder:
+1) main3_1.c
+2) spi_led.c
+3) pulse.c
+4) main3_2.c
+5) Makefile
+
+main3_1.c
+==================
+This is a program to test the driver that is already installed (available within the galileo image i.e spidev). This file initiates 2 threads, one to read Ultrasonic sensor and one to send message over SPI bus to the LED Display.
+The responses from the ultrasonic sensor is used to control the dog running on the LED Display.
+
+main3_2.c
+==================
+This is a test program for the task 2 of the assignment. Here the user is provided with 4 inputs.
+1. To See dog controlled by sensor
+2. Number counter controlled by sensor
+3. Display distance on Sensor
+4. User Defined Pattern
+
+The first one is to see the dog speed controlled by drivers developed as part of the assignment.
+The second one is a counter from 00 to 99. After 99 the counter resets to 00. The speed of count is controlled by the sensor. The closer an obstacle to the sensor, faster is the counter and away the obsatcle, slower is the counter.
+The third input is display the distance meassured by the sensor on the display screen. The distance is measured in cm and is displayed from 00 to 99 cm on the LED Display. Any distance more than 99cm is displayed as 99 cm on the LED.
+The Fourth input is to display a sequence of input and its order of display is provided in the user space program. The same order and time passes in the sequence is used to the control the time of display and pattern to be displayed. This code can be used to test the (0,0) to terminate the pattern and sequence with (0,0) at the end is displayed in loop.
+
+Note: The four input options initiates one thread at a time. This threads runs till terminated. So user needs to interrupt to terminate the thread. So test the next functionality, ./main3_2.o needs to be run again and different options needs to be selected. Hence to test 4 functionalities, the program needs to be terminated four times and run 4 times.
+
+
+spi_led.c
+===================
+This is driver for SPI and LED display. It is developed using major number = 154. Please make sure this major number is free before insmod for the driver.
+If that major number is not free, kindly change the number in the driver, to other free number. It consists of probe, init, open, release, write and ioctl function.
+The IOCTL function is used to set the device buffer, with the pattern obtained from the user space. After the pattern has been set
+
+pulse.c
+===================
+This is driver for Ultrasonic sensor. It consists of open, release, init, exit, write and read functions. The write functions is used to send a trigger pulse to the sensor. Before sending trigger pulse to the sensor, a check if device is busy or not is checked. The write function initiates a interrupt handler. The interrupt handler is used to detect the rising and the falling edges
+of the signal on echo pin. The rise and fall time is stored into the device variables. When the user requests for a read request of the measures pulse width, driver checks if the device is busy still waiting for the rising and falling edges. If the rising and falling times have been obatined then the busy status is no longer needed and the difference of the times is calculated and 
+its repective, pulse width is calculated. This is then returned to the user space.
+
+Steps to execute
+===================
+1) In the terminal, navigate to the path where source files have been placed.
+2) Create the main3_1.o object file, by using the command "$CC -o main3_1.o main3_1.c -lpthread".
+3) Create the main3_2.o object file, by using the command "$CC -o main3_2.o main3_2.c -lpthread".
+4) Run the command "make all", this generates the spi_led.ko and pulse.ko file for the driver files spi_led.c and pulse.c.
+5) Make sure the spidev is installed, if not then run the command, "modprobe spidev" .
+6) Run "./main3_1.o", this is task 1 of the assignment.
+7) Now, remove the spidev driver, by using the command "rmmod spidev".
+8) Install the drivers/modules, by using the command, "insmod spi_led.ko" and "insmod pulse.ko".
+9) To check if the pulse.ko and spi_led.ko has been loaded into the list of modules, use the command lsmod.
+10) Now run, "./main3_2.o" to check the functionalities of the user space using the developed drivers.
+11) Select the various inputs to check the various functionalities developed using the developed driver.
+
+Makefile
+=============
+This file is used to generate all binary/object files for loading module into the kernel. The file has been created for local running only, it path needs to be modified for crosscompiling.
+
+Explaination for Animations
+===========================
+1. The first one is to see the dog speed controlled by drivers developed as part of the assignment. Here same functionality as part one is developed but by using the developed drivers.
+2. The second one is a counter from 00 to 99. After 99 the counter resets to 00. The speed of count is controlled by the sensor. The closer an obstacle to the sensor, faster is the counter and away the obsatcle, slower is the counter.
+3. The third input is display the distance meassured by the sensor on the display screen. The distance is measured in cm and is displayed from 00 to 99 cm on the LED Display. Any distance more than 99cm is displayed as 99 cm on the LED.
+4. The Fourth input is to display a sequence of input and its order of display is provided in the user space program. The same order and time passes in the sequence is used to the control the time of display and pattern to be displayed. This code can be used to test the (0,0) to terminate the pattern and sequence with (0,0) at the end is displayed in loop.
